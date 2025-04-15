@@ -13,7 +13,8 @@ st.markdown(
 
 @st.cache_data
 def load_data():
-    test_val = pd.read_excel("SWaT_Dataset_Attack_v0.xlsx")
+#     test_val = pd.read_excel("SWaT_Dataset_Attack_v0.xlsx")
+    test_val = pd.read_excel("https://docs.google.com/spreadsheets/d/1XtooZ0IKlnjdpNT5DfyXUQ7LquPu3sOI/edit?usp=sharing&ouid=101231168773558142688&rtpof=true&sd=true")
     test_val.columns = test_val.iloc[0, :]
     test_val.drop(0, inplace=True)
     test_val.columns = test_val.columns.str.replace(' ', '')
