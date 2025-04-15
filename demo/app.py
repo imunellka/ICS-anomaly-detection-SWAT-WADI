@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-
+import time
 
 st.set_page_config(page_title="SWaT Аномалии", layout="wide")
 st.markdown(
@@ -87,7 +87,7 @@ else:
     else:
         import time
         time.sleep(2)
-        st.experimental_rerun()
+        st.rerun()
 
 
 ind_start = st.session_state.start_ind
