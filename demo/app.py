@@ -20,7 +20,7 @@ def load_data():
 
     test_val["Timestamp"] = pd.to_datetime(test_val["Timestamp"], dayfirst=True)
 
-    attacks = pd.read_excel("demo/List_of_attacks_Final.xlsx")[:100_000]
+    attacks = pd.read_excel("demo/List_of_attacks_Final.xlsx")
     attacks = attacks[['Start Time', 'End Time', 'Attack Point']].dropna()
 
     attacks['Day'] = attacks['Start Time'].apply(lambda x: str(x).split()[0])
