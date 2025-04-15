@@ -43,38 +43,21 @@ if "start_ind" not in st.session_state:
     st.session_state.start_ind = 0
 
 
-# ind_start, ind_end = 0, 100000
-# subset = test_val.iloc[ind_start:ind_end]
-# timestamps = subset["Timestamp"]
-
-
-features = st.multiselect(
-    "Выберите фичи для отображения:",
-    options=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]],
-    default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]][:6]
-)
-
 col1, col2 = st.columns([1, 1])
 with col1:
-    play_clicked = st.button("▶️ Play")
+    if st.button("▶️ Play"):
+        st.session_state.playing = True
 with col2:
-    stop_clicked = st.button("⏹️ Stop")
+    if st.button("⏹️ Stop"):
+        st.session_state.playing = False
 
 
-if play_clicked:
-    st.session_state.playing = True
-if stop_clicked:
-    st.session_state.playing = False
-
-
-# total_range = len(test_val)
-# Параметры окна
 total_range = 100_000
 step = 1000
 window_size = 10000
 max_ind = total_range - window_size
 
-# Реализация слайдера или автоматического шага
+
 if not st.session_state.playing:
     st.session_state.start_ind = st.slider(
         "Выберите диапазон времени:",
@@ -86,19 +69,25 @@ if not st.session_state.playing:
 else:
     st.info("⏳ Воспроизведение в реальном времени...")
     st.session_state.start_ind += step
+
     if st.session_state.start_ind >= max_ind:
         st.session_state.start_ind = max_ind
         st.session_state.playing = False
-    else:
-        time.sleep(1)
-        st.rerun()
+    st.rerun()
 
 
 ind_start = st.session_state.start_ind
 ind_end = ind_start + window_size
-
 subset = test_val.iloc[ind_start:ind_end]
 timestamps = subset["Timestamp"]
+
+
+features = st.multiselect(
+    "Выберите фичи для отображения:",
+    options=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]],
+    default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]][:6]
+)
+
 
 for feature in features:
     fig = go.Figure()
