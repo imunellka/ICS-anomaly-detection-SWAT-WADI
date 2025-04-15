@@ -56,11 +56,15 @@ features = st.multiselect(
 
 col1, col2 = st.columns([1, 1])
 with col1:
-    if st.button("▶️ Play") and not st.session_state.playing:
-        st.session_state.playing = True
+    play_clicked = st.button("▶️ Play")
 with col2:
-    if st.button("⏹️ Stop"):
-        st.session_state.playing = False
+    stop_clicked = st.button("⏹️ Stop")
+
+
+if play_clicked:
+    st.session_state.playing = True
+if stop_clicked:
+    st.session_state.playing = False
 
 
 # total_range = len(test_val)
@@ -86,7 +90,7 @@ else:
         st.session_state.start_ind = max_ind
         st.session_state.playing = False
     else:
-        time.sleep(2)
+        time.sleep(1)
         st.rerun()
 
 
