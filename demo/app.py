@@ -37,6 +37,12 @@ def load_data():
 
 test_val, attacks_list = load_data()
 
+if "playing" not in st.session_state:
+    st.session_state.playing = False
+if "start_ind" not in st.session_state:
+    st.session_state.start_ind = 0
+
+
 ind_start, ind_end = 0, 100000
 subset = test_val.iloc[ind_start:ind_end]
 timestamps = subset["Timestamp"]
@@ -48,19 +54,43 @@ features = st.multiselect(
     default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]][:6]
 )
 
-# total_range = len(test_val)
-total_range = 100_000
-step = 500
-window_size = 10000
-start_ind = st.slider(
-    "Выберите диапазон времени:",
-    min_value=0,
-    max_value=total_range - window_size,
-    value=0,
-    step=step
-)
+col1, col2 = st.columns([1, 1])
+with col1:
+    if st.button("▶️ Play") and not st.session_state.playing:
+        st.session_state.playing = True
+with col2:
+    if st.button("⏹️ Stop"):
+        st.session_state.playing = False
 
-ind_start = start_ind
+
+# total_range = len(test_val)
+# Параметры окна
+total_range = 100_000
+step = 1000
+window_size = 10000
+max_ind = total_range - window_size
+
+# Реализация слайдера или автоматического шага
+if not st.session_state.playing:
+    st.session_state.start_ind = st.slider(
+        "Выберите диапазон времени:",
+        min_value=0,
+        max_value=max_ind,
+        value=st.session_state.start_ind,
+        step=step
+    )
+else:
+    st.info("⏳ Воспроизведение в реальном времени...")
+    st.session_state.start_ind += step
+    if st.session_state.start_ind >= max_ind:
+        st.session_state.playing = False
+    else:
+        import time
+        time.sleep(2)
+        st.experimental_rerun()
+
+
+ind_start = st.session_state.start_ind
 ind_end = ind_start + window_size
 
 subset = test_val.iloc[ind_start:ind_end]
