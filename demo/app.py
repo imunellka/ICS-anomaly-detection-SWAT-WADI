@@ -48,7 +48,8 @@ features = st.multiselect(
     default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]]][:6]
 )
 
-total_range = len(test_val)
+# total_range = len(test_val)
+total_range = 100_000
 step = 500
 window_size = 10000
 start_ind = st.slider(
