@@ -43,9 +43,9 @@ if "start_ind" not in st.session_state:
     st.session_state.start_ind = 0
 
 
-ind_start, ind_end = 0, 100000
-subset = test_val.iloc[ind_start:ind_end]
-timestamps = subset["Timestamp"]
+# ind_start, ind_end = 0, 100000
+# subset = test_val.iloc[ind_start:ind_end]
+# timestamps = subset["Timestamp"]
 
 
 features = st.multiselect(
@@ -83,9 +83,9 @@ else:
     st.info("⏳ Воспроизведение в реальном времени...")
     st.session_state.start_ind += step
     if st.session_state.start_ind >= max_ind:
+        st.session_state.start_ind = max_ind
         st.session_state.playing = False
     else:
-        import time
         time.sleep(2)
         st.rerun()
 
