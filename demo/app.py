@@ -44,8 +44,8 @@ timestamps = subset["Timestamp"]
 
 features = st.multiselect(
     "Выберите фичи для отображения:",
-    options=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack"]],
-    default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack"]][:6]
+    options=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]],
+    default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]]][:6]
 )
 
 total_range = len(test_val)
