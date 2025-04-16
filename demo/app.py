@@ -118,7 +118,7 @@ def draw_plots(ind_start, ind_end):
 
         fig.update_layout(
             title=feature,
-            height=250,
+            height=200,
             margin=dict(l=10, r=10, t=30, b=10),
             paper_bgcolor="#1e1e1e",
             plot_bgcolor="#1e1e1e",
@@ -142,7 +142,7 @@ if st.session_state.playing:
 
         ind_start = st.session_state.start_ind
         ind_end = ind_start + window_size
-        
+
         plot_placeholder = st.empty()
 
         with plot_placeholder.container():
