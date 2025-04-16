@@ -142,6 +142,8 @@ if st.session_state.playing:
 
         ind_start = st.session_state.start_ind
         ind_end = ind_start + window_size
+        
+        plot_placeholder = st.empty()
 
         with plot_placeholder.container():
             st.info("⏳ Воспроизведение в реальном времени...")
