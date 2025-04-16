@@ -145,7 +145,7 @@ if st.session_state.playing:
 
         with plot_area.container():
             fig = go.Figure()
-            for feature in selected_features:
+            for feature in features:
                 fig.add_trace(go.Scatter(
                     x=subset_ds["Timestamp"],
                     y=subset_ds[feature],
