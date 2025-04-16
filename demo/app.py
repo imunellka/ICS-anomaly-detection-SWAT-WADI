@@ -38,8 +38,8 @@ test_val, attacks_list = load_data()
 
 features = st.multiselect(
     "Выберите фичи для отображения:",
-    options=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]],
-    default=[col for col in test_val.columns if col not in ["Timestamp", "Normal/Attack", "nan", None]][:6]
+    options=[col for col in test_val[1:].columns if col not in ["Timestamp", "Normal/Attack"]],
+    default=[col for col in test_val[1:].columns if col not in ["Timestamp", "Normal/Attack"]][:6]
 )
 
 timestamps = test_val["Timestamp"]
