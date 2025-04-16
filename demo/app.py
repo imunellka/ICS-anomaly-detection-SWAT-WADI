@@ -106,6 +106,7 @@ def draw_plots(ind_start, ind_end):
             if a_st <= ind_end and a_end >= ind_start:
                 x0 = max(a_st, ind_start) - ind_start
                 x1 = min(a_end, ind_end) - ind_start
+                x1 = min(x1, len(subset) - 1)
                 fig.add_vrect(
                     x0=subset.iloc[x0]["Timestamp"],
                     x1=subset.iloc[x1]["Timestamp"],
