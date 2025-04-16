@@ -72,8 +72,8 @@ if stop_clicked:
 
 
 total_range = 100_000
-step = 500
-window_size = 5_000
+step = 300
+window_size = 6_000
 max_ind = total_range - window_size
 
 if not st.session_state.playing:
@@ -117,7 +117,7 @@ def draw_plots(ind_start, ind_end):
 
         fig.update_layout(
             title=feature,
-            height=300,
+            height=250,
             margin=dict(l=10, r=10, t=30, b=10),
             paper_bgcolor="#1e1e1e",
             plot_bgcolor="#1e1e1e",
