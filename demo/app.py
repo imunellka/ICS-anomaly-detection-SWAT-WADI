@@ -72,8 +72,8 @@ if stop_clicked:
 
 
 total_range = 100_000
-step = 1000
-window_size = 10_000
+step = 500
+window_size = 5_000
 max_ind = total_range - window_size
 
 if not st.session_state.playing:
@@ -130,6 +130,7 @@ def draw_plots(ind_start, ind_end):
         st.plotly_chart(fig, use_container_width=True)
 
 
+plot_area = st.empty()
 if st.session_state.playing:
     while st.session_state.playing:
         if st.session_state.start_ind >= max_ind:
@@ -139,12 +140,23 @@ if st.session_state.playing:
         ind_start = st.session_state.start_ind
         ind_end = ind_start + window_size
 
-        with placeholder.container():
-            st.info("⏳ Воспроизведение в реальном времени...")
-            draw_plots(ind_start, ind_end)
+        subset = test_val.iloc[ind_start:ind_end].reset_index(drop=True)
+        subset_ds = subset[::5]
+
+        with plot_area.container():
+            fig = go.Figure()
+            for feature in selected_features:
+                fig.add_trace(go.Scatter(
+                    x=subset_ds["Timestamp"],
+                    y=subset_ds[feature],
+                    mode="lines",
+                    name=feature,
+                    line=dict(width=1)
+                ))
+            st.plotly_chart(fig, use_container_width=True)
 
         st.session_state.start_ind += step
-        time.sleep(1)
+#         time.sleep(0.5)
         st.rerun()
 else:
     ind_start = st.session_state.start_ind
