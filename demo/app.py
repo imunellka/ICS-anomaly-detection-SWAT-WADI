@@ -106,7 +106,7 @@ def draw_plots(ind_start, ind_end):
         for _, row in attacks_list.iterrows():
             a_st, a_end = row['ind_st'], row['ind_end']
             if a_st <= ind_end and a_end >= ind_start:
-                x0 = max(a_st, ind_start) - ind_start
+                x0 = max(max(a_st, ind_start) - ind_start, 0)
                 x1 = min(a_end, ind_end) - ind_start
                 x1 = min(x1, len(subset) - 1)
                 fig.add_vrect(
