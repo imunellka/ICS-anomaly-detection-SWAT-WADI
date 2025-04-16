@@ -88,30 +88,33 @@ if not st.session_state.playing:
 placeholder = st.empty()
 
 def draw_plots(ind_start, ind_end):
-    subset = test_val.iloc[ind_start:ind_end]
-    # понижение детализации
-    subset = subset[::5]
-    timestamps = subset["Timestamp"]
+    subset = test_val.iloc[ind_start:ind_end].reset_index(drop=True)
+    subset_ds = subset[::5]  # downsample для ускорения
+
+    timestamps = subset_ds["Timestamp"]
 
     for feature in features:
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=timestamps,
-            y=subset[feature],
+            y=subset_ds[feature],
             mode="lines",
             name=feature,
-            line=dict(color="#00f5d4")
+            line=dict(color="#00f5d4", width=1)
         ))
 
+        # Визуализация атак
         for _, row in attacks_list.iterrows():
             a_st, a_end = row['ind_st'], row['ind_end']
             if a_st <= ind_end and a_end >= ind_start:
-                x0 = max(max(a_st, ind_start) - ind_start, 0)
+                x0 = max(a_st, ind_start) - ind_start
                 x1 = min(a_end, ind_end) - ind_start
-                x1 = min(x1, len(subset) - 1)
+                x1 = min(x1, len(subset_ds) - 1)
+                x0 = min(x0, len(subset_ds) - 1)
+
                 fig.add_vrect(
-                    x0=subset.iloc[x0]["Timestamp"],
-                    x1=subset.iloc[x1]["Timestamp"],
+                    x0=subset_ds.iloc[x0]["Timestamp"],
+                    x1=subset_ds.iloc[x1]["Timestamp"],
                     fillcolor="red",
                     opacity=0.3,
                     line_width=0
@@ -140,6 +143,7 @@ if st.session_state.playing:
 
         ind_start = st.session_state.start_ind
         ind_end = ind_start + window_size
+        plot_placeholder = st.empty()
 
         with placeholder.container():
             st.info("⏳ Воспроизведение в реальном времени...")
