@@ -90,6 +90,7 @@ plot_placeholder = st.empty()
 def draw_plots(ind_start, ind_end):
     subset = test_val.iloc[ind_start:ind_end]
     timestamps = subset["Timestamp"]
+    figures = []
 
     for feature in features:
         fig = go.Figure()
@@ -127,7 +128,10 @@ def draw_plots(ind_start, ind_end):
             showlegend=False
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        figures.append(fig)
+
+    return figures
+
 
 
 if st.session_state.playing:
@@ -141,12 +145,18 @@ if st.session_state.playing:
 
         with plot_placeholder.container():
             st.info("⏳ Воспроизведение в реальном времени...")
-            draw_plots(ind_start, ind_end)
+            figures = draw_plots(ind_start, ind_end)
+            for fig in figures:
+                st.plotly_chart(fig, use_container_width=True)
 
         st.session_state.start_ind += step
+        time.sleep(0.3)
         st.rerun()
 else:
     ind_start = st.session_state.start_ind
     ind_end = ind_start + window_size
+
     with plot_placeholder.container():
-            draw_plots(ind_start, ind_end)
+        figures = draw_plots(ind_start, ind_end)
+        for fig in figures:
+            st.plotly_chart(fig, use_container_width=True)
