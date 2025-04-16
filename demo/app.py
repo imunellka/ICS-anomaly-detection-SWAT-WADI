@@ -89,6 +89,8 @@ placeholder = st.empty()
 
 def draw_plots(ind_start, ind_end):
     subset = test_val.iloc[ind_start:ind_end]
+    # понижение детализации
+    subset = subset[::5]
     timestamps = subset["Timestamp"]
 
     for feature in features:
