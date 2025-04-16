@@ -118,7 +118,7 @@ def draw_plots(ind_start, ind_end):
 
         fig.update_layout(
             title=feature,
-            height=200,
+            height=250,
             margin=dict(l=10, r=10, t=30, b=10),
             paper_bgcolor="#1e1e1e",
             plot_bgcolor="#1e1e1e",
