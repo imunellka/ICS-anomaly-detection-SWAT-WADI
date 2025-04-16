@@ -144,7 +144,7 @@ if st.session_state.playing:
 
         st.session_state.start_ind += step
         time.sleep(1)
-        st.experimental_rerun()
+        st.rerun()
 else:
     ind_start = st.session_state.start_ind
     ind_end = ind_start + window_size
