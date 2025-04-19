@@ -128,12 +128,9 @@ class Head(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        # input of size (batch, time-step, channels)
-        # output of size (batch, time-step, head size)
         B, T, C = x.shape
         k = self.key(x)  # (B,T,hs)
         q = self.query(x)  # (B,T,hs)
-        # compute attention scores ("affinities")
         wei = q @ k.transpose(-2, -1) * k.shape[-1] ** -0.5  # (B, T, hs) @ (B, hs, T) -> (B, T, T)
         if self.use_diagonal_mask:
             wei = wei.masked_fill(self.eye[:T, :T] == 1, float(0))  # (B, T, T)
@@ -250,7 +247,7 @@ class PositionalEncoding(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, d_model=64, n_steps=20, n_head=1, n_layer=2, dropout=0.1,
+    def __init__(self, d_model=256, n_steps=30, n_head=4, n_layer=1, dropout=0.1,
                  use_diagonal_mask=True, use_skip=True, use_pos_encoding=True):
         super().__init__()
         self.use_pos_encoding = use_pos_encoding
@@ -273,8 +270,8 @@ class TransformerEncoder(nn.Module):
 
 class WaterSystemAnomalyTransformer(ABC):
 
-    def __init__(self, n_steps=20, d_input=2, d_model=64, n_head=1, n_layer=2, batch_size=32,
-                       n_epochs=10, lr=0.001, weight_decay=0, dropout=0.1, use_diagonal_mask=True,
+    def __init__(self, n_steps=30, d_input=51, d_model=256, n_head=4, n_layer=1, batch_size=32,
+                       n_epochs=100, lr=0.001, weight_decay=0, dropout=0.1, use_diagonal_mask=True,
                        lr_decay_epochs=None, lr_decay_factor=0.1, use_skip=True,
                        use_avg_imputing=False, use_pos_encoding=True, device='cuda:0'):
 
@@ -308,6 +305,52 @@ class WaterSystemAnomalyTransformer(ABC):
             )
 
         self.loss_history = []
+
+    def save(self, path):
+        torch.save({
+            'token_encoder': self.token_encoder.state_dict(),
+            'token_decoder': self.token_decoder.state_dict(),
+            'transformer': self.model.state_dict(),
+            'config': {
+                'd_input': self.token_encoder.linear_1.in_features // 2,
+                'd_model': self.model.l1.out_features,
+                'n_head': len(self.model.blocks[0].sa.heads),
+                'n_layer': len(self.model.blocks),
+                'use_skip': self.model.blocks[0].use_skip,
+                'use_pos_encoding': self.use_pos_encoding,
+                'device': self.device,
+            }
+        }, path)
+
+    @classmethod
+    def load(cls, path):
+        checkpoint = torch.load(path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        config = checkpoint['config']
+        model = cls(**config)
+
+        model.token_encoder.load_state_dict(checkpoint['token_encoder'])
+        model.token_decoder.load_state_dict(checkpoint['token_decoder'])
+        model.model.load_state_dict(checkpoint['transformer'])
+
+        model.token_encoder.eval()
+        model.token_decoder.eval()
+        model.model.eval()
+
+        return model
+
+    def gaussian_nll_loss(self, target, mu, sigma, mask=None, eps=10 ** -6):
+        sigma = sigma + eps
+        loss = -1. * torch.log(sigma) - (target - mu) ** 2 / (2 * sigma ** 2)
+        if mask is not None:
+            n_ones = mask[mask == 1].numel()
+            if n_ones == 0:
+                loss = float(0)
+            else:
+                loss = loss * mask
+                loss = -loss.sum() / n_ones
+        else:
+            loss = -loss.mean()
+        return loss
 
     def gaussian_nll_loss(self, target, mu, sigma, mask=None, eps=10 ** -6):
         sigma = sigma + eps
@@ -381,13 +424,8 @@ class WaterSystemAnomalyTransformer(ABC):
 
             print(f"Epoch {epoch} finished. LR: {self.opt.param_groups[0]['lr']}")
 
-        # self.token_encoder.eval()
-        # self.token_decoder.eval()
-        # self.model.eval()
 
     def sample_cat_values(self, probas):
-        # sam = [torch.multinomial(p, num_samples=1).unsqueeze(0) for p in probas]
-        # sam = torch.cat(sam, dim=0)
         sam = torch.distributions.categorical.Categorical(probas).sample().unsqueeze(2)
         return sam
 
@@ -415,20 +453,30 @@ class WaterSystemAnomalyTransformer(ABC):
                 X_pred_mu.cpu().detach().numpy(),
                 X_pred_logsigma.cpu().detach().numpy())
 
-    def anomaly_scores(self, X, missing_proba=0.5):
+    def anomaly_scores(self, X, missing_proba=0.5, batch_size=32):
+        scores = []
 
-        mask_missing = 1 * (np.random.random(X.shape) <= missing_proba)
-        X_missing = X.copy()
-        X_missing[mask_missing == 1] = 0
+        num_samples = X.shape[0]
+        for i in range(0, num_samples, batch_size):
+            batch_X = X[i:i + batch_size]
 
-        X_pred_sam, X_pred_mu, X_pred_logsigma = self._predict(X_missing, mask_missing)
+            mask_missing = 1 * (np.random.random(batch_X.shape) <= missing_proba)
+            X_missing = batch_X.copy()
+            X_missing[mask_missing == 1] = 0
 
-        norm = torch.distributions.normal.Normal(X_pred_mu, torch.exp(X_pred_logsigma))
+            X_pred_sam, X_pred_mu, X_pred_logsigma = self._predict(X_missing, mask_missing)
 
-        X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device)
-        scores = -norm.log_prob(X_tensor).mean(-1)
+            norm = torch.distributions.normal.Normal(
+                X_pred_mu,
+                torch.exp(X_pred_logsigma)
+            )
 
-        return scores.cpu().detach().numpy()
+            X_batch_tensor = torch.tensor(batch_X, dtype=torch.float32).to(self.device)
+            batch_scores = -norm.log_prob(X_batch_tensor).mean(-1)
+
+            scores.append(batch_scores.cpu().detach().numpy())
+
+        return np.concatenate(scores, axis=0)
 
     def average_anomaly_score(self, X, missing_proba=0.5):
 

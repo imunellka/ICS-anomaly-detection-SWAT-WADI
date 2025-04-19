@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 import torch
+
 import torch.nn as nn
 from torch.nn import functional as F
 
@@ -133,7 +134,6 @@ class Head(nn.Module):
         B, T, C = x.shape
         k = self.key(x)  # (B,T,hs)
         q = self.query(x)  # (B,T,hs)
-        # compute attention scores ("affinities")
         wei = q @ k.transpose(-2, -1) * k.shape[-1] ** -0.5  # (B, T, hs) @ (B, hs, T) -> (B, T, T)
         if self.use_diagonal_mask:
             wei = wei.masked_fill(self.eye[:T, :T] == 1, float(0))  # (B, T, T)
@@ -250,7 +250,7 @@ class PositionalEncoding(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, d_model=64, n_steps=20, n_head=1, n_layer=2, dropout=0.1,
+    def __init__(self, d_model=128, n_steps=30, n_head=4, n_layer=2, dropout=0.1,
                  use_diagonal_mask=True, use_skip=True, use_pos_encoding=True):
         super().__init__()
         self.use_pos_encoding = use_pos_encoding
@@ -273,9 +273,9 @@ class TransformerEncoder(nn.Module):
 
 class MaskedTranEncoder(ABC):
 
-    def __init__(self, n_steps=20, d_input=2, d_model=64, n_head=1, n_layer=2, batch_size=32,
-                       n_epochs=10, lr=0.001, weight_decay=0, dropout=0.1, use_diagonal_mask=True, use_skip=True,
-                       use_avg_imputing=False, use_pos_encoding=True, device='cpu'):
+    def __init__(self, n_steps=30, d_input=51, d_model=128, n_head=4, n_layer=21, batch_size=32,
+                       n_epochs=100, lr=0.001, weight_decay=0, dropout=0.1, use_diagonal_mask=True, use_skip=True,
+                       use_avg_imputing=False, use_pos_encoding=True, device='cuda:0'):
 
         self.batch_size = batch_size
         self.n_epochs = n_epochs
@@ -295,6 +295,38 @@ class MaskedTranEncoder(ABC):
                                     lr=lr, weight_decay=weight_decay)
 
         self.loss_history = []
+
+    def save(self, path):
+        torch.save({
+            'token_encoder': self.token_encoder.state_dict(),
+            'token_decoder': self.token_decoder.state_dict(),
+            'transformer': self.model.state_dict(),
+            'config': {
+                'd_input': self.token_encoder.linear_1.in_features // 2,
+                'd_model': self.model.l1.out_features,
+                'n_head': len(self.model.blocks[0].sa.heads),
+                'n_layer': len(self.model.blocks),
+                'use_skip': self.model.blocks[0].use_skip,
+                'use_pos_encoding': self.use_pos_encoding,
+                'device': self.device,
+            }
+        }, path)
+
+    @classmethod
+    def load(cls, path):
+        checkpoint = torch.load(path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        config = checkpoint['config']
+        model = cls(**config)
+
+        model.token_encoder.load_state_dict(checkpoint['token_encoder'])
+        model.token_decoder.load_state_dict(checkpoint['token_decoder'])
+        model.model.load_state_dict(checkpoint['transformer'])
+
+        model.token_encoder.eval()
+        model.token_decoder.eval()
+        model.model.eval()
+
+        return model
 
     def gaussian_nll_loss(self, target, mu, sigma, mask=None, eps=10 ** -6):
         sigma = sigma + eps
@@ -361,25 +393,18 @@ class MaskedTranEncoder(ABC):
                 loss.backward()
                 self.opt.step()
 
-                self.loss_history.append(loss.detach().numpy())
+                self.loss_history.append(loss.detach().cpu().numpy())
 
-        # self.token_encoder.eval()
-        # self.token_decoder.eval()
-        # self.model.eval()
 
     def sample_cat_values(self, probas):
-        # sam = [torch.multinomial(p, num_samples=1).unsqueeze(0) for p in probas]
-        # sam = torch.cat(sam, dim=0)
         sam = torch.distributions.categorical.Categorical(probas).sample().unsqueeze(2)
         return sam
 
     def _predict(self, X, mask_missing):
-
-        X = torch.tensor(X, dtype=torch.float32, device=self.device)
-        mask_missing = torch.tensor(mask_missing, dtype=torch.float32, device=self.device)
+        X = torch.tensor(X, dtype=torch.float32).to(self.device)
+        mask_missing = torch.tensor(mask_missing, dtype=torch.float32).to(self.device)
 
         with torch.no_grad():
-
             self.token_encoder.eval()
             self.token_decoder.eval()
             self.model.eval()
@@ -392,42 +417,41 @@ class MaskedTranEncoder(ABC):
 
         return X_pred_sam, X_pred_mu, X_pred_logsigma
 
+
     def predict(self, X, mask_missing):
         X_pred_sam, X_pred_mu, X_pred_logsigma = self._predict(X, mask_missing)
-        return X_pred_sam.detach().numpy(), X_pred_mu.detach().numpy(), X_pred_logsigma.detach().numpy()
+        return (X_pred_sam.cpu().detach().numpy(),
+                X_pred_mu.cpu().detach().numpy(),
+                X_pred_logsigma.cpu().detach().numpy())
 
-    def anomaly_scores(self, X, missing_proba=0.5):
 
-        mask_missing = 1 * (np.random.random(X.shape) <= missing_proba)
-        X_missing = X.copy()
-        X_missing[mask_missing == 1] = 0
+    def anomaly_scores(self, X, missing_proba=0.5, batch_size=32):
+        scores = []
 
-        X_pred_sam, X_pred_mu, X_pred_logsigma = self._predict(X_missing, mask_missing)
+        num_samples = X.shape[0]
+        for i in range(0, num_samples, batch_size):
+            batch_X = X[i:i + batch_size]
 
-        norm = torch.distributions.normal.Normal(X_pred_mu, torch.exp(X_pred_logsigma))
-        scores = -norm.log_prob(torch.tensor(X)).mean(-1)
+            mask_missing = 1 * (np.random.random(batch_X.shape) <= missing_proba)
+            X_missing = batch_X.copy()
+            X_missing[mask_missing == 1] = 0
 
-        return scores.detach().numpy()
+            X_pred_sam, X_pred_mu, X_pred_logsigma = self._predict(X_missing, mask_missing)
+
+            norm = torch.distributions.normal.Normal(
+                X_pred_mu,
+                torch.exp(X_pred_logsigma)
+            )
+
+            X_batch_tensor = torch.tensor(batch_X, dtype=torch.float32).to(self.device)
+            batch_scores = -norm.log_prob(X_batch_tensor).mean(-1)
+
+            scores.append(batch_scores.cpu().detach().numpy())
+
+        return np.concatenate(scores, axis=0)
 
     def average_anomaly_score(self, X, missing_proba=0.5):
 
         scores = self.anomaly_scores(X, missing_proba=0.5)
 
         return scores.mean(-1)
-
-    # def predict(self, tokens, mask_missing, impute_known=False):
-    #
-    #     tokens = torch.tensor(tokens, dtype=torch.float32, device=self.device)
-    #     mask_missing = torch.tensor(mask_missing, dtype=torch.float32, device=self.device)
-    #
-    #     tokens_imputed = []
-    #     with torch.no_grad():
-    #         for i in np.arange(0, len(tokens)):
-    #             seq_imputed = self._one_seq_prediction(tokens[[i]], mask_missing[[i]])
-    #             if not impute_known:
-    #                 seq_imputed = seq_imputed * mask_missing[[i]] + \
-    #                               tokens[[i]] * (1 - mask_missing[[i]])
-    #             tokens_imputed.append(seq_imputed)
-    #     tokens_imputed = torch.cat(tokens_imputed, dim=0)
-    #
-    #     return tokens_imputed
