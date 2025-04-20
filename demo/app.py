@@ -182,16 +182,12 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
 
 if st.session_state.playing:
-    while st.session_state.playing:
-        if st.session_state.start_ind >= max_ind:
-            st.session_state.playing = False
-            break
+    ind_start = st.session_state.start_ind
+    ind_end = ind_start + window_size
 
-        ind_start = st.session_state.start_ind
-        ind_end = ind_start + window_size
-
-        plot_placeholder = st.empty()
-
+    if ind_end >= total_range:
+        st.session_state.playing = False
+    else:
         with plot_placeholder.container():
             st.info("⏳ Воспроизведение в реальном времени...")
             figures = draw_plots(ind_start, ind_end, pred_labels)
@@ -200,6 +196,7 @@ if st.session_state.playing:
 
         st.session_state.start_ind += step
         st.rerun()
+
 else:
     ind_start = st.session_state.start_ind
     ind_end = ind_start + window_size
