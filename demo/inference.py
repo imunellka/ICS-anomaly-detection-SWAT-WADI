@@ -25,7 +25,7 @@ def transform_anomaly_scores(X_attack, scores):
     return y_pred / counts
 
 def load_model(model_path, device="cpu"):
-    loaded_imputer = WaterSystemAnomalyTransformer.load("model_storage/WaterSystemAnomalyTransformer.pth")
+    loaded_imputer = WaterSystemAnomalyTransformer.load("model_storage/WaterSystemBertImputer.pth")
     loaded_imputer.to(device)
     loaded_imputer.eval()
 
