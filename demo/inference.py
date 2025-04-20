@@ -47,7 +47,7 @@ def predict_anomalies(model_path):
     )
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-    model, config = load_model(model_path, device)
+    model = load_model(model_path, device)
 
     scores = []
     with torch.no_grad():
