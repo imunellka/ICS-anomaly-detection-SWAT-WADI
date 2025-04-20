@@ -39,11 +39,6 @@ def load_data():
 
 test_val, attacks_list = load_data()
 
-if "playing" not in st.session_state:
-    st.session_state.playing = False
-if "start_ind" not in st.session_state:
-    st.session_state.start_ind = 0
-
 
 # ind_start, ind_end = 0, 100000
 # subset = test_val.iloc[ind_start:ind_end]
@@ -75,10 +70,9 @@ play_col = st.columns([2, 4, 2])[1]
 with play_col:
     play_clicked = st.button("▶️ Воспроизвести", use_container_width=True)
 
-if play_clicked:
+if play_clicked and num_steps != 0:
     st.session_state.playing = True
     st.session_state.steps_left = num_steps
-
 
 total_range = 100_000
 step = 300
