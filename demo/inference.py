@@ -27,7 +27,7 @@ def transform_anomaly_scores(X_attack, scores):
 def load_model(model_path, device="cpu"):
     model = Autoencoder()
     print(model_path)
-    model.load_state_dict(torch.load(model_path, weights_only=True, map_location=device))
+    model.load_state_dict(torch.load(model_path, weights_only=True, map_location=torch.device('cpu')))
     model.to(device)
     model.eval()
 
