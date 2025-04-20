@@ -71,8 +71,6 @@ num_steps = st.selectbox(
     index=1
 )
 
-st.markdown("### ")
-
 play_col = st.columns([2, 4, 2])[1]
 with play_col:
     play_clicked = st.button("▶️ Воспроизвести", use_container_width=True)
@@ -183,30 +181,33 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
     return figures
 
+if play_clicked:
+    st.session_state.playing = True
+    st.session_state.steps_remaining = num_steps 
 
 
 
-if st.session_state.get("playing", False) and st.session_state.get("steps_left", 0) > 0:
-    ind_start = st.session_state.get("start_ind", 0)
-    ind_end = ind_start + window_size
 
-    with plot_placeholder.container():
+if st.session_state.playing:
+    if "steps_remaining" not in st.session_state:
+        st.session_state.steps_remaining = num_steps
+
+    if st.session_state.steps_remaining > 0 and st.session_state.start_ind < max_ind:
+        ind_start = st.session_state.start_ind
+        ind_end = ind_start + window_size
+
+        with plot_placeholder.container():
         st.info("⏳ Воспроизведение в реальном времени...")
-        figures = draw_plots(ind_start, ind_end, pred_labels)
-        for fig in figures:
-            st.plotly_chart(fig, use_container_width=True)
+           figures = draw_plots(ind_start, ind_end, pred_labels)
+            for fig in figures:
+                st.plotly_chart(fig, use_container_width=True)
 
-    st.session_state.start_ind += step
-    st.session_state.steps_left -= step
-
-    if (
-        st.session_state.start_ind >= max_ind
-        or st.session_state.steps_left <= 0
-    ):
-        st.session_state.playing = False
-    else:
-        time.sleep(0.3)
+        st.session_state.start_ind += step
+        st.session_state.steps_remaining -= 1
         st.rerun()
+    else:
+        st.session_state.playing = False
+        st.session_state.steps_remaining = 0
 else:
     ind_start = st.session_state.start_ind
     ind_end = ind_start + window_size
