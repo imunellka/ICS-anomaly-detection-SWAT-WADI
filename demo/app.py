@@ -93,8 +93,11 @@ if not st.session_state.playing:
 
 plot_placeholder = st.empty()
 
+
 pred_labels, scores = predict_anomalies(
-    model_path=os.path.join("model_storage", model_name)
+    model_path=os.path.join("model_storage", model_name),
+    model_name=model_name,
+    use_saved_preds=True
 )
 
 
