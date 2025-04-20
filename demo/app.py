@@ -183,7 +183,7 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
 if play_clicked:
     st.session_state.playing = True
-    st.session_state.steps_remaining = num_steps 
+    st.session_state.steps_remaining = num_steps
 
 
 
@@ -197,8 +197,8 @@ if st.session_state.playing:
         ind_end = ind_start + window_size
 
         with plot_placeholder.container():
-        st.info("⏳ Воспроизведение в реальном времени...")
-           figures = draw_plots(ind_start, ind_end, pred_labels)
+            st.info("⏳ Воспроизведение в реальном времени...")
+            figures = draw_plots(ind_start, ind_end, pred_labels)
             for fig in figures:
                 st.plotly_chart(fig, use_container_width=True)
 
