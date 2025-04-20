@@ -196,7 +196,7 @@ if st.session_state.get("playing", False):
     if st.session_state.start_ind >= max_ind:
         st.session_state.playing = False
     else:
-        time.sleep(0.3)
+        time.sleep(1)
         st.rerun()
 else:
     ind_start = st.session_state.start_ind
