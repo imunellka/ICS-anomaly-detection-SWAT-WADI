@@ -6,11 +6,11 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from data.WaterSystemDataset import WaterSystemDataset
-from models.AutoEncoderCN import AutoEncoderCN
+from models.AutoEncoderCN import Autoencoder
 from models.MaskedTranEncoder import MaskedTranEncoder
-from models.ProbabilisticTranEncoder import ProbabilisticTranEncoder
+from models.ProbabilisticTranEncoder import ProbTransAE
 from models.TransformerbasedEncoder import TransformerbasedEncoder
-from models.WaterSystemAnomalyTrasformer import WaterSystemAnomalyTrasformer
+from models.WaterSystemAnomalyTrasformer import WaterSystemAnomalyTransformer
 import json
 import torch.nn.functional as F
 
