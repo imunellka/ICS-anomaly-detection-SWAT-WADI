@@ -34,14 +34,14 @@ def load_model(model_path, device="cpu"):
     return model
 
 model_to_pred_file = {
-    "IsolationForest.pkl": "/demo/preds/preds_if.npy",
-    "AutoEncoderCN.pth": "/demo/preds/preds_AutoEncoder_CN.npy",
-    "TransformerEncoder.pth": "/demo/preds/preds_TranEncoder.npy",
-    "ProbabilisticTranEncoder.pth": "/demo/preds/preds_ProbabilisticTranEncoder.npy",
-    "WaterSystemBertImputer.pth": "/demo/preds/preds_WaterSystemBertImputer.npy",
-    "WaterSystemBertImputerv2.pth": "/demo/preds/preds_WaterSystemBertImputer_v2.npy",
-    "WaterSystemBertImputerv3.pth": "/demo/preds/preds_WaterSystemBertImputer_v3.npy",
-    "WaterSystemBertImputerv4.pth": "/demo/preds/preds_WaterSystemBertImputer_v4.npy",
+    "IsolationForest.pkl": "demo/preds/preds_if.npy",
+    "AutoEncoderCN.pth": "demo/preds/preds_AutoEncoder_CN.npy",
+    "TransformerEncoder.pth": "demo/preds/preds_TranEncoder.npy",
+    "ProbabilisticTranEncoder.pth": "demo/preds/preds_ProbabilisticTranEncoder.npy",
+    "WaterSystemBertImputer.pth": "demo/preds/preds_WaterSystemBertImputer.npy",
+    "WaterSystemBertImputerv2.pth": "demo/preds/preds_WaterSystemBertImputer_v2.npy",
+    "WaterSystemBertImputerv3.pth": "demo/preds/preds_WaterSystemBertImputer_v3.npy",
+    "WaterSystemBertImputerv4.pth": "demo/preds/preds_WaterSystemBertImputer_v4.npy",
 }
 
 def predict_anomalies(model_path, model_name="AutoEncoderCN.pth", use_saved_preds=False):
