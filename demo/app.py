@@ -182,7 +182,7 @@ if st.session_state.get("playing", False) and st.session_state.get("steps_left",
     ind_start = st.session_state.get("start_ind", 0)
     ind_end = ind_start + window_size
 
-    
+
     plot_placeholder = st.empty()
 
     with plot_placeholder.container():
@@ -200,8 +200,9 @@ if st.session_state.get("playing", False) and st.session_state.get("steps_left",
     ):
         st.session_state.playing = False
         st.session_state.steps_left = 0
+        plot_placeholder.empty()
     else:
-        time.sleep(0.3)
+        time.sleep(0.1)
         st.rerun()
 
 else:
