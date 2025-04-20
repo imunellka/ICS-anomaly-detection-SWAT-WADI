@@ -25,15 +25,12 @@ def transform_anomaly_scores(X_attack, scores):
     return y_pred / counts
 
 def load_model(model_path, device="cpu"):
-    checkpoint = torch.load(model_path, map_location=device)
-
-    config = checkpoint["config"]
-    model = AutoEncoderCN(config)
-    model.load_state_dict(checkpoint["model"])
+    model = Autoencoder()
+    model.load_state_dict(torch.load(model_path, weights_only=True))
     model.to(device)
     model.eval()
 
-    return model, config
+    return model
 
 
 def predict_anomalies(model_path):
