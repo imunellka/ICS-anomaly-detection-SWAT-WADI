@@ -60,7 +60,7 @@ if "start_ind" not in st.session_state:
 if "playing" not in st.session_state:
     st.session_state.playing = False
 
-model_files = [f for f in os.listdir("model_storage") if f.endswith(".pth") or f.endswith("forest.pkl")]
+model_files = [f for f in os.listdir("model_storage") if f.endswith(".pth") or f.endswith("Forest.pkl")]
 model_name = st.selectbox("Выберите модель для инференса:", model_files)
 
 
