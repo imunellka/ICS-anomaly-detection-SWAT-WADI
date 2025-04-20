@@ -117,19 +117,34 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
         ))
 
 
-        for _, row in attacks_list.iterrows():
-            a_st, a_end = row['ind_st'], row['ind_end']
-            if a_st <= ind_end and a_end >= ind_start:
-                x0 = max(a_st, ind_start) - ind_start
-                x1 = min(a_end, ind_end) - ind_start
-                x1 = min(x1, len(subset) - 1)
+        attack_labels = subset["Normal/Attack"].astype(str).str.lower()
+        in_attack = False
+        start_idx = None
+
+        for i, val in enumerate(attack_labels):
+            if val == "Attack" and not in_attack:
+                in_attack = True
+                start_idx = i
+            elif val != "Attack" and in_attack:
+                in_attack = False
+                end_idx = i
                 fig.add_vrect(
-                    x0=subset.iloc[x0]["Timestamp"],
-                    x1=subset.iloc[x1]["Timestamp"],
+                    x0=subset.iloc[start_idx]["Timestamp"],
+                    x1=subset.iloc[end_idx - 1]["Timestamp"],
                     fillcolor="red",
                     opacity=0.3,
                     line_width=0
                 )
+        
+        if in_attack:
+            fig.add_vrect(
+                x0=subset.iloc[start_idx]["Timestamp"],
+                x1=subset.iloc[-1]["Timestamp"],
+                fillcolor="red",
+                opacity=0.3,
+                line_width=0
+            )
+
 
         if pred_labels is not None:
             pred_subset = pred_labels[ind_start:ind_end]
