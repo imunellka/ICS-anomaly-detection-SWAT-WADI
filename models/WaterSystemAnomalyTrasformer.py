@@ -405,6 +405,7 @@ class WaterSystemAnomalyTransformer(ABC):
                 x_batch, x_m_batch, m_batch, m_art_batch = batch
 
                 token_embed = self.token_encoder(x_m_batch, m_batch)
+                token_embed = self.token_encoder(x_m_batch, m_batch)
                 output_embed = self.model(token_embed)
                 x_pred_mu, x_pred_logsigma = self.token_decoder(output_embed)
 

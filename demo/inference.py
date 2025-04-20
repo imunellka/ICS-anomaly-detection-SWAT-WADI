@@ -25,33 +25,44 @@ def transform_anomaly_scores(X_attack, scores):
     return y_pred / counts
 
 def load_model(model_path, device="cpu"):
-    loaded_imputer = WaterSystemAnomalyTransformer.load("model_storage/WaterSystemBertImputer.pth")
-    loaded_imputer.to(device)
-    loaded_imputer.eval()
+    model = Autoencoder()
+    print(model_path)
+    model.load_state_dict(torch.load(model_path, weights_only=True, map_location=torch.device('cpu')))
+    model.to(device)
+    model.eval()
 
-    return loaded_imputer
+    return model
 
-def get_windows(X, window_size=40, batch_size=10000, stride=1):
-    result = []
-    for i in range(0, len(X) - window_size + 1, batch_size):
-        end = min(i + batch_size, len(X) - window_size + 1)
-        batch = [X[j:j + window_size] for j in range(i, end, stride)]
-        result.extend(batch)
-    return np.array(result)
 
 def predict_anomalies(model_path):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cpu"
 
-    test_dataset_np = np.load("demo/test_swat_cropped.npy", allow_pickle=True).take(list(range(51)), axis=1)
-    test_dataset_w = get_windows(test_dataset_np,  window_size=30, stride = 1)
+    test_dataset = WaterSystemDataset(
+        "demo/test_swat_cropped.npy",
+        feature_idx=list(range(51)),
+        start_idx=0,
+        end_idx=100_000,
+        window_size=30,
+        sliding=1
+    )
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     model = load_model(model_path, device)
 
-    y_attack_scores_w = model.anomaly_scores(test_dataset_w, 0.1, 32)
-    y_attack_scores = transform_anomaly_scores(test_dataset_np, y_attack_scores_w)
+    scores = []
+    with torch.no_grad():
+        for x in test_loader:
+            x_data = x[0].to(device)
+            y_hat = model(x_data.permute(0, 2, 1))
+            batch_scores = F.mse_loss(y_hat, x_data.permute(0, 2, 1), reduction="none")
+            scores.extend(batch_scores.mean(1))
 
-    threshold =  865.8972736409505
+    y_attack_scores_w = np.array(scores)
 
+    test_np = np.load("demo/test_swat_cropped.npy")
+    y_attack_scores = transform_anomaly_scores(test_np, y_attack_scores_w)
+
+    threshold =  70000
     y_pred = (y_attack_scores > threshold).astype(int)
 
     return y_pred, y_attack_scores
