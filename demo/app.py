@@ -181,23 +181,23 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
 
 
-if st.session_state.playing:
-    ind_start = st.session_state.start_ind
+if st.session_state.get("playing", False):
+    ind_start = st.session_state.get("start_ind", 0)
     ind_end = ind_start + window_size
 
-    if ind_end >= total_range:
+    with plot_placeholder.container():
+        st.info("⏳ Воспроизведение в реальном времени...")
+        figures = draw_plots(ind_start, ind_end, pred_labels)
+        for fig in figures:
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.session_state.start_ind += step
+
+    if st.session_state.start_ind >= max_ind:
         st.session_state.playing = False
     else:
-        with plot_placeholder.container():
-            st.info("⏳ Воспроизведение в реальном времени...")
-            figures = draw_plots(ind_start, ind_end, pred_labels)
-            for fig in figures:
-                st.plotly_chart(fig, use_container_width=True)
-
-        st.session_state.start_ind += step
-        time.sleep(0.4)
+        time.sleep(0.3)
         st.rerun()
-
 else:
     ind_start = st.session_state.start_ind
     ind_end = ind_start + window_size
