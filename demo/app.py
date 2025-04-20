@@ -182,6 +182,9 @@ if st.session_state.get("playing", False) and st.session_state.get("steps_left",
     ind_start = st.session_state.get("start_ind", 0)
     ind_end = ind_start + window_size
 
+    
+    plot_placeholder = st.empty()
+
     with plot_placeholder.container():
         st.info("⏳ Воспроизведение в реальном времени...")
         figures = draw_plots(ind_start, ind_end, pred_labels)
