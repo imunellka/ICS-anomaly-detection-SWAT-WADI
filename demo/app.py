@@ -70,7 +70,7 @@ play_col = st.columns([2, 4, 2])[1]
 with play_col:
     play_clicked = st.button("▶️ Воспроизвести", use_container_width=True)
 
-if play_clicked and num_steps != 0:
+if play_clicked and num_steps > 0:
     st.session_state.playing = True
     st.session_state.steps_left = num_steps
 
