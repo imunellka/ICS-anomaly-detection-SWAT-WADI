@@ -113,7 +113,7 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
             line=dict(color="#00f5d4")
         ))
 
-        # Красные зоны — реальные атаки
+
         for _, row in attacks_list.iterrows():
             a_st, a_end = row['ind_st'], row['ind_end']
             if a_st <= ind_end and a_end >= ind_start:
@@ -128,7 +128,6 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
                     line_width=0
                 )
 
-        # Зелёные зоны — предсказанные аномалии
         if pred_labels is not None:
             pred_subset = pred_labels[ind_start:ind_end]
             in_anomaly = False
@@ -149,7 +148,6 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
                         line_width=0
                     )
 
-            # Если аномалия продолжается до конца
             if in_anomaly:
                 fig.add_vrect(
                     x0=subset.iloc[start_idx]["Timestamp"],

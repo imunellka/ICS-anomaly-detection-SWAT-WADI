@@ -62,7 +62,7 @@ def predict_anomalies(model_path):
     test_np = np.load("demo/test_swat_cropped.npy")
     y_attack_scores = transform_anomaly_scores(test_np, y_attack_scores_w)
 
-    threshold =  70000
+    threshold =  700
     y_pred = (y_attack_scores > threshold).astype(int)
 
     return y_pred, y_attack_scores
