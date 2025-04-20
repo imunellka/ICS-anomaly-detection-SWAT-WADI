@@ -117,33 +117,20 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
         ))
 
 
-        attack_labels = subset["Normal/Attack"].astype(str).str.lower()
-        in_attack = False
-        start_idx = None
+        attack_mask = subset["Normal/Attack"].astype(str).str.lower() == "Attack"
+        attack_timestamps = subset["Timestamp"][attack_mask]
+        attack_values = subset[feature][attack_mask]
 
-        for i, val in enumerate(attack_labels):
-            if val == "Attack" and not in_attack:
-                in_attack = True
-                start_idx = i
-            elif val != "Attack" and in_attack:
-                in_attack = False
-                end_idx = i
-                fig.add_vrect(
-                    x0=subset.iloc[start_idx]["Timestamp"],
-                    x1=subset.iloc[end_idx - 1]["Timestamp"],
-                    fillcolor="red",
-                    opacity=0.3,
-                    line_width=0
-                )
-        
-        if in_attack:
-            fig.add_vrect(
-                x0=subset.iloc[start_idx]["Timestamp"],
-                x1=subset.iloc[-1]["Timestamp"],
-                fillcolor="red",
-                opacity=0.3,
-                line_width=0
-            )
+        fig.add_trace(go.Scatter(
+            x=attack_timestamps,
+            y=attack_values,
+            mode="markers",
+            name="True Attack",
+            marker=dict(color="red", size=6, symbol="x"),
+            showlegend=False
+        ))
+
+
 
 
         if pred_labels is not None:
