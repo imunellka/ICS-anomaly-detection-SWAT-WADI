@@ -324,7 +324,7 @@ class WaterSystemAnomalyTransformer(ABC):
 
     @classmethod
     def load(cls, path):
-        checkpoint = torch.load(path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        checkpoint = torch.load(path, map_location=torch.device('cpu'))
         config = checkpoint['config']
         model = cls(**config)
 
