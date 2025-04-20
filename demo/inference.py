@@ -60,8 +60,8 @@ def predict_anomalies(model_path, model_name="AutoEncoderCN.pth", use_saved_pred
     print(f"🧠 Инференс модели: {model_name}")
 
     if use_saved_preds and model_name in model_to_pred_file:
-        y_attack_scores_w = np.load(model_to_pred_file[model_name])
-        y_pred = y_attack_scores_w
+        y_attack_scores = np.load(model_to_pred_file[model_name])
+        y_pred = y_attack_scores
     else:
 
         model = load_model(model_path, device)
