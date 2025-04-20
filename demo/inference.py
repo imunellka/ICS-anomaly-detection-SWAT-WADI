@@ -1,3 +1,5 @@
+import sys
+import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import numpy as np
@@ -11,7 +13,6 @@ from models.TransformerbasedEncoder import TransformerbasedEncoder
 from models.WaterSystemAnomalyTrasformer import WaterSystemAnomalyTrasformer
 import json
 import torch.nn.functional as F
-import os
 
 def transform_anomaly_scores(X_attack, scores):
     y_pred = np.zeros(X_attack.shape[0])
