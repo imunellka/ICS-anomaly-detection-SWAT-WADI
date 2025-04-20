@@ -55,7 +55,7 @@ def predict_anomalies(model_path):
             x_data = x[0].to(device)
             y_hat = model(x_data.permute(0, 2, 1))
             batch_scores = F.mse_loss(y_hat, x_data.permute(0, 2, 1), reduction="none")
-            scores.extend(batch_scores)
+            scores.extend(batch_scores.mean(1))
 
     y_attack_scores_w = np.array(scores)
 
