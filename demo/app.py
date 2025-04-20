@@ -4,6 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 import time
 import os
+from inference import predict_anomalies
 
 st.set_page_config(page_title="SWaT Аномалии", layout="wide")
 st.markdown(
@@ -92,7 +93,12 @@ if not st.session_state.playing:
 
 plot_placeholder = st.empty()
 
-def draw_plots(ind_start, ind_end):
+pred_labels, scores = predict_anomalies(
+    model_path=os.path.join("model_storage", model_name)
+)
+
+
+def draw_plots(ind_start, ind_end, pred_labels=None):
     subset = test_val.iloc[ind_start:ind_end]
     timestamps = subset["Timestamp"]
     figures = []
@@ -107,6 +113,7 @@ def draw_plots(ind_start, ind_end):
             line=dict(color="#00f5d4")
         ))
 
+        # Красные зоны — реальные атаки
         for _, row in attacks_list.iterrows():
             a_st, a_end = row['ind_st'], row['ind_end']
             if a_st <= ind_end and a_end >= ind_start:
@@ -117,6 +124,37 @@ def draw_plots(ind_start, ind_end):
                     x0=subset.iloc[x0]["Timestamp"],
                     x1=subset.iloc[x1]["Timestamp"],
                     fillcolor="red",
+                    opacity=0.3,
+                    line_width=0
+                )
+
+        # Зелёные зоны — предсказанные аномалии
+        if pred_labels is not None:
+            pred_subset = pred_labels[ind_start:ind_end]
+            in_anomaly = False
+            start_idx = None
+
+            for i, val in enumerate(pred_subset):
+                if val == 1 and not in_anomaly:
+                    in_anomaly = True
+                    start_idx = i
+                elif val == 0 and in_anomaly:
+                    in_anomaly = False
+                    end_idx = i
+                    fig.add_vrect(
+                        x0=subset.iloc[start_idx]["Timestamp"],
+                        x1=subset.iloc[end_idx - 1]["Timestamp"],
+                        fillcolor="green",
+                        opacity=0.3,
+                        line_width=0
+                    )
+
+            # Если аномалия продолжается до конца
+            if in_anomaly:
+                fig.add_vrect(
+                    x0=subset.iloc[start_idx]["Timestamp"],
+                    x1=subset.iloc[-1]["Timestamp"],
+                    fillcolor="green",
                     opacity=0.3,
                     line_width=0
                 )
@@ -139,6 +177,7 @@ def draw_plots(ind_start, ind_end):
 
 
 
+
 if st.session_state.playing:
     while st.session_state.playing:
         if st.session_state.start_ind >= max_ind:
@@ -152,7 +191,7 @@ if st.session_state.playing:
 
         with plot_placeholder.container():
             st.info("⏳ Воспроизведение в реальном времени...")
-            figures = draw_plots(ind_start, ind_end)
+            figures = draw_plots(ind_start, ind_end, pred_labels)
             for fig in figures:
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -163,6 +202,6 @@ else:
     ind_end = ind_start + window_size
 
     with plot_placeholder.container():
-        figures = draw_plots(ind_start, ind_end)
+        figures = draw_plots(ind_start, ind_end, pred_labels)
         for fig in figures:
             st.plotly_chart(fig, use_container_width=True)
