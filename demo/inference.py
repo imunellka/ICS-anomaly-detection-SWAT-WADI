@@ -53,8 +53,8 @@ def predict_anomalies(model_path):
     with torch.no_grad():
         for x in test_loader:
             x_data = x[0].to(device)
-            y_hat = model(x_data)
-            batch_scores = F.mse_loss(reconstructed, X_data, reduction="none")
+            y_hat = model(x_data.permute(0, 2, 1))
+            batch_scores = F.mse_loss(y_hat, x_data.permute(0, 2, 1), reduction="none")
             scores.extend(batch_scores)
 
     y_attack_scores_w = np.array(scores)
