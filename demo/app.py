@@ -195,6 +195,7 @@ if st.session_state.playing:
                 st.plotly_chart(fig, use_container_width=True)
 
         st.session_state.start_ind += step
+        time.sleep(0.4)
         st.rerun()
 
 else:
