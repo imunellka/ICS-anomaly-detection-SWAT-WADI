@@ -273,7 +273,7 @@ class WaterSystemAnomalyTransformer(ABC):
     def __init__(self, n_steps=30, d_input=51, d_model=256, n_head=4, n_layer=1, batch_size=32,
                        n_epochs=100, lr=0.001, weight_decay=0, dropout=0.1, use_diagonal_mask=True,
                        lr_decay_epochs=None, lr_decay_factor=0.1, use_skip=True,
-                       use_avg_imputing=False, use_pos_encoding=True, device='cuda:0'):
+                       use_avg_imputing=False, use_pos_encoding=True, device='cpu'):
 
         self.batch_size = batch_size
         self.n_epochs = n_epochs
