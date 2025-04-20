@@ -117,7 +117,7 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
         ))
 
 
-        attack_mask = subset["Normal/Attack"].astype(str).str.lower() == "Attack"
+        attack_mask = subset["Normal/Attack"].astype(str).str.lower() == "attack"
         attack_timestamps = subset["Timestamp"][attack_mask]
         attack_values = subset[feature][attack_mask]
 
