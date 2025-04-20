@@ -178,12 +178,12 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
 
 
-if st.session_state.get("playing", False) and st.session_state.get("steps_left", 0) > 0:
+if st.session_state.get("playing", False) and st.session_state.get("steps_left", 0) >= step:
     ind_start = st.session_state.get("start_ind", 0)
     ind_end = ind_start + window_size
 
-
-    plot_placeholder = st.empty()
+#
+#     plot_placeholder = st.empty()
 
     with plot_placeholder.container():
         st.info("⏳ Воспроизведение в реальном времени...")
@@ -191,6 +191,7 @@ if st.session_state.get("playing", False) and st.session_state.get("steps_left",
         for fig in figures:
             st.plotly_chart(fig, use_container_width=True)
 
+    plot_placeholder.empty()
     st.session_state.start_ind += step
     st.session_state.steps_left -= step
 
@@ -200,9 +201,8 @@ if st.session_state.get("playing", False) and st.session_state.get("steps_left",
     ):
         st.session_state.playing = False
         st.session_state.steps_left = 0
-        plot_placeholder.empty()
     else:
-        time.sleep(0.1)
+        time.sleep(0.2)
         st.rerun()
 
 else:
