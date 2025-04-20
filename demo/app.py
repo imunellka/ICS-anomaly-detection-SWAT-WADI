@@ -65,15 +65,17 @@ model_files = [f for f in os.listdir("model_storage") if f.endswith(".pth") or f
 model_name = st.selectbox("Выберите модель для инференса:", model_files)
 
 
-col1, col2 = st.columns([1, 1])
-with col1:
-    play_clicked = st.button("▶️ Play")
-with col2:
-    num_steps = st.selectbox(
-        "Сколько шагов воспроизвести?",
-        options=[500, 1000, 5000, 7000, 10000, 15000],
-        index=1
-    )
+num_steps = st.selectbox(
+    "Сколько шагов воспроизвести?",
+    options=[500, 1000, 5000, 10000],
+    index=1
+)
+
+st.markdown("### ")
+
+play_col = st.columns([2, 4, 2])[1]
+with play_col:
+    play_clicked = st.button("▶️ Воспроизвести", use_container_width=True)
 
 if play_clicked:
     st.session_state.playing = True
