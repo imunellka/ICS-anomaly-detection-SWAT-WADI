@@ -59,6 +59,10 @@ if "start_ind" not in st.session_state:
 if "playing" not in st.session_state:
     st.session_state.playing = False
 
+model_files = [f for f in os.listdir("../model_storage/") if f.endswith(".pth") or f.endswith(".pkl")]
+model_name = st.selectbox("Выберите модель для инференса:", model_files)
+
+
 col1, col2 = st.columns([1, 1])
 with col1:
     play_clicked = st.button("▶️ Play")
