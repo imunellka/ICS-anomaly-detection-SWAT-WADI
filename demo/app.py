@@ -69,12 +69,15 @@ col1, col2 = st.columns([1, 1])
 with col1:
     play_clicked = st.button("▶️ Play")
 with col2:
-    stop_clicked = st.button("⏹️ Stop")
+    num_steps = st.selectbox(
+        "Сколько шагов воспроизвести?",
+        options=[500, 1000, 5000, 7000, 10000, 15000],
+        index=1
+    )
 
 if play_clicked:
     st.session_state.playing = True
-if stop_clicked:
-    st.session_state.playing = False
+    st.session_state.steps_left = num_steps
 
 
 total_range = 100_000
@@ -164,7 +167,7 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
         fig.update_layout(
             title=feature,
-            height=250,
+            height=230,
             margin=dict(l=10, r=10, t=30, b=10),
             paper_bgcolor="#1e1e1e",
             plot_bgcolor="#1e1e1e",
@@ -181,7 +184,7 @@ def draw_plots(ind_start, ind_end, pred_labels=None):
 
 
 
-if st.session_state.get("playing", False):
+if st.session_state.get("playing", False) and st.session_state.get("steps_left", 0) > 0:
     ind_start = st.session_state.get("start_ind", 0)
     ind_end = ind_start + window_size
 
@@ -192,11 +195,15 @@ if st.session_state.get("playing", False):
             st.plotly_chart(fig, use_container_width=True)
 
     st.session_state.start_ind += step
+    st.session_state.steps_left -= step
 
-    if st.session_state.start_ind >= max_ind:
+    if (
+        st.session_state.start_ind >= max_ind
+        or st.session_state.steps_left <= 0
+    ):
         st.session_state.playing = False
     else:
-        time.sleep(1)
+        time.sleep(0.3)
         st.rerun()
 else:
     ind_start = st.session_state.start_ind
