@@ -34,7 +34,7 @@ def load_model(model_path, device="cpu"):
     return model
 
 model_to_pred_file = {
-    "IsolationForest.pkl": "demo/preds/preds_if.npy",
+    "IsolationForest.pkl": "demo/preds/preds_IFbaseline.npy",
     "AutoEncoderCN.pth": "demo/preds/preds_AutoEncoder_CN.npy",
     "TransformerEncoder.pth": "demo/preds/preds_TranEncoder.npy",
     "ProbabilisticTranEncoder.pth": "demo/preds/preds_ProbabilisticTranEncoder.npy",
